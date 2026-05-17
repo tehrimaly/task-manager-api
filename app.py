@@ -1,9 +1,11 @@
 from flask import Flask, jsonify, request
 from datetime import datetime
 import uuid
+import os
 
 app = Flask(__name__)
 tasks = {}
+
 
 def create_task(title, description="", priority="medium"):
     if not title or not isinstance(title, str):
@@ -22,6 +24,7 @@ def create_task(title, description="", priority="medium"):
     tasks[task_id] = task
     return task
 
+
 def get_task(task_id):
     if not task_id:
         raise ValueError("Task ID cannot be empty.")
@@ -29,6 +32,7 @@ def get_task(task_id):
     if task is None:
         raise KeyError(f"Task '{task_id}' not found.")
     return task
+
 
 def update_task(task_id, **kwargs):
     task = get_task(task_id)
@@ -43,10 +47,12 @@ def update_task(task_id, **kwargs):
         task[key] = value
     return task
 
+
 def delete_task(task_id):
     task = get_task(task_id)
     del tasks[task_id]
     return task
+
 
 def list_tasks(filter_completed=None, priority=None):
     result = list(tasks.values())
@@ -56,6 +62,7 @@ def list_tasks(filter_completed=None, priority=None):
         result = [t for t in result if t["priority"] == priority]
     return result
 
+
 @app.route("/tasks", methods=["GET"])
 def api_list_tasks():
     completed = request.args.get("completed")
@@ -63,6 +70,7 @@ def api_list_tasks():
     if completed is not None:
         completed = completed.lower() == "true"
     return jsonify(list_tasks(filter_completed=completed, priority=priority))
+
 
 @app.route("/tasks", methods=["POST"])
 def api_create_task():
@@ -77,12 +85,14 @@ def api_create_task():
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
+
 @app.route("/tasks/<task_id>", methods=["GET"])
 def api_get_task(task_id):
     try:
         return jsonify(get_task(task_id))
     except KeyError as e:
         return jsonify({"error": str(e)}), 404
+
 
 @app.route("/tasks/<task_id>", methods=["PUT"])
 def api_update_task(task_id):
@@ -94,6 +104,7 @@ def api_update_task(task_id):
     except (ValueError, TypeError) as e:
         return jsonify({"error": str(e)}), 400
 
+
 @app.route("/tasks/<task_id>", methods=["DELETE"])
 def api_delete_task(task_id):
     try:
@@ -101,5 +112,7 @@ def api_delete_task(task_id):
     except KeyError as e:
         return jsonify({"error": str(e)}), 404
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
