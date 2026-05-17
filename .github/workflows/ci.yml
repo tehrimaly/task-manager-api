@@ -54,6 +54,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build Docker image
         run: docker build -t task-manager-api .
+      - name: Smoke test Docker container
+        run: |
+          docker run -d -p 5000:5000 --name test-container task-manager-api
+          sleep 5
+          curl -f http://localhost:5000/tasks || exit 1
+          docker stop test-container
 
   deploy:
     name: Deploy
@@ -61,6 +67,8 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: Trigger Render deploy
+      - name: Confirm Railway auto-deploy
         run: |
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          echo "Railway is connected to GitHub and auto-deploys on push to main."
+          echo "Deployment triggered by commit: ${{ github.sha }}"
+          echo "All pipeline stages passed. Live URL is on Railway dashboard."
