@@ -8,6 +8,7 @@ tasks = {}
 
 
 def create_task(title, description="", priority="medium"):
+    """Create a new task with validation and error handling."""
     if not title or not isinstance(title, str):
         raise ValueError("Title must be a non-empty string.")
     if priority not in ("low", "medium", "high"):
@@ -26,6 +27,7 @@ def create_task(title, description="", priority="medium"):
 
 
 def get_task(task_id):
+    """Retrieve a task by ID."""
     if not task_id:
         raise ValueError("Task ID cannot be empty.")
     task = tasks.get(task_id)
@@ -35,6 +37,7 @@ def get_task(task_id):
 
 
 def update_task(task_id, **kwargs):
+    """Update allowed fields of an existing task."""
     task = get_task(task_id)
     allowed = {"title", "description", "priority", "completed"}
     for key, value in kwargs.items():
@@ -49,12 +52,14 @@ def update_task(task_id, **kwargs):
 
 
 def delete_task(task_id):
+    """Delete a task by ID and return the deleted task."""
     task = get_task(task_id)
     del tasks[task_id]
     return task
 
 
 def list_tasks(filter_completed=None, priority=None):
+    """List all tasks with optional filters."""
     result = list(tasks.values())
     if filter_completed is not None:
         result = [t for t in result if t["completed"] == filter_completed]
